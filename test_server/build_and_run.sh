@@ -14,7 +14,7 @@ while [ $# -ne 0 ]; do
             shift;
         done
         shift;
-        if [ $# -ne 0 ] && [ "$1" != "--" ]; then
+        if [ $# -ne 0 ] && [ "$1" == "--" ]; then
             shift;
         fi
         ;;
@@ -23,7 +23,7 @@ while [ $# -ne 0 ]; do
             BUILD_ARGS="$BUILD_ARGS $2";
             shift;
         done
-        if [ $# -ne 0 ] && [ "$1" != "--" ]; then
+        if [ $# -ne 0 ] && [ "$1" == "--" ]; then
             shift;
         fi
         shift;
