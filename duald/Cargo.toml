@@ -23,6 +23,11 @@ features = [
     "Selection",
     "Window",
 ]
+
+[dependencies.fern]
+version = "0.6"
+[dependencies.console_log]
+version = "0.2"
 [dependencies.log]
 version = "0.4"
 [dependencies.tap]
