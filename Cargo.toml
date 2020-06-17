@@ -1,2 +1,6 @@
 [workspace]
 members = ["duald"]
+
+[profile.release]
+lto = true
+opt-level = 's'

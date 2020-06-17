@@ -27,7 +27,3 @@ features = [
 version = "0.4"
 [dependencies.tap]
 version = "0.4"
-
-[profile.release]
-lto = true
-opt-level = 's'
