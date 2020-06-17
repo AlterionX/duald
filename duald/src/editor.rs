@@ -92,7 +92,7 @@ impl<UI: EditorUI, Processor: TextProcessor> Editor<UI, Processor> {
                 ele_range.to_string().length()
             } as usize;
             
-            if sel.collapsed() {
+            if sel.is_collapsed() {
                 Some(Cursor::Insert(end_offset))
             } else {
                 let sel_start = {

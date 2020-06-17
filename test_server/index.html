@@ -1,0 +1,23 @@
+<html>
+  <head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+  </head>
+  <body>
+    <script type="module">
+      import init, { attach_default_editor_to } from './pkg/duald.js';
+
+      async function run() {
+
+        await init();
+
+        attach_default_editor_to('test');
+      }
+
+      run();
+    </script>
+    <div id="test" class="duald_content">
+        
+    </div>
+  </body>
+</html>
+
