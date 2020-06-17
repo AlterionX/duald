@@ -34,7 +34,7 @@ pub struct Editor<UI: EditorUI, Processor: TextProcessor> {
 
 const CURSOR_CHANGE_EVENTS: &'static str = "mousedown mouseup keydown keyup";
 pub const CONTENT_CSS_CLASS: &'static str = "duald_editor_content";
-pub const PRIMARY_CSS_CLASS: &'static str = "duald_content";
+pub const PRIMARY_CSS_CLASS: &'static str = "duald_editor";
 
 impl<UI: EditorUI, Processor: TextProcessor> Editor<UI, Processor> {
     pub fn init(editor: HtmlElement) -> Result<Self, JsValue> {
