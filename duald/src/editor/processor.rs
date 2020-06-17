@@ -1,8 +1,8 @@
 use std::{
     ops::{Bound, RangeBounds},
 };
-use wasm_bindgen::JsValue;
-use web_sys::HtmlElement;
+use wasm_bindgen::{closure::Closure, JsCast, JsValue};
+use web_sys::{HtmlElement, EventTarget};
 use tap::*;
 
 use crate::editor::Cursor;
@@ -11,21 +11,49 @@ pub trait TextProcessor: Sized {
     fn attach(editor: HtmlElement) -> Result<Self, JsValue>;
 }
 
-pub struct DefaultProcessor;
+const CURSOR_CHANGE_EVENTS: [&'static str; 4] = [
+    "mousedown",
+    "mouseup",
+    "keydown",
+    "keyup",
+];
+
+pub struct DefaultProcessor {}
 
 impl TextProcessor for DefaultProcessor {
-    fn attach(_: HtmlElement) -> Result<Self, JsValue> {
-        Ok(Self)
+    fn attach(editor: HtmlElement) -> Result<Self, JsValue> {
+        editor.set_content_editable("true");
+        editor.style().set_property("height", "100px")?;
+        editor.style().set_property("width", "100px")?;
+        editor.style().set_property("border", "50px solid black")?;
+
+        // TODO Temporary thing for testing out the cursor location.
+        let root = editor.owner_document().ok_or("Editor element does not have a owning document!")?;
+        let event_target: EventTarget = root.into();
+        let editor_ptr = editor.clone();
+        let callback = Closure::wrap(Box::new(move || log::info!("A call back! Selected text: {:?}", Self::find_cursor(editor_ptr.clone()))) as Box<dyn Fn()>);
+        for event in CURSOR_CHANGE_EVENTS.iter() {
+            event_target.add_event_listener_with_callback(event, callback.as_ref().unchecked_ref())?;
+        }
+        log::info!("Callback! {:?}", callback);
+        callback.forget();
+
+        Ok(Self {})
     }
 }
 
 impl DefaultProcessor {
+    // TODO Consider moving this to the UI
+    // TODO figure out how to count new lines (in Chrome)
+    // TODO make sure this works in every browser (other than IE)
     // Source: https://stackoverflow.com/questions/4811822/get-a-ranges-start-and-end-offsets-relative-to-its-parent-container/4812022#4812022
     fn find_cursor(editor: HtmlElement) -> Option<Cursor> {
         // The reference code also has a `document`, but that's only in IE.
-        let doc = editor.owner_document()?;
+        let doc = editor.owner_document()
+            .tap_none(|| log::warn!("Editor has no owning document."))?;
         // The `default_view` is called `parent_window` only in IE.
-        let win = doc.default_view()?;
+        let win = doc.default_view()
+            .tap_none(|| log::warn!("Document has now visable window."))?;
 
         // Locate selection
         let sel = match win.get_selection() {
@@ -47,7 +75,8 @@ impl DefaultProcessor {
         if sel.range_count() > 0 {
             let sel_range = sel.get_range_at(0).ok()?;
             let ele_range = {
-                let range = sel_range.clone();
+                // range is a pointer type, so we need to call the special function
+                let range = sel_range.clone_range();
                 range.select_node_contents(&editor)
                     .ok()?;
                 range
