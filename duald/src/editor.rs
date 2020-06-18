@@ -48,17 +48,15 @@ impl<UI: EditorUI, Processor: TextProcessor> Editor<UI, Processor> {
         // Initialize UI. (Perhaps remove contenteditable on the outer div, add a toolbar, and create an inner div that has contenteditable.)
         let ui = UI::init(editor.clone())?;
         // TODO create actual editor
-        Err("Temp error to avoid constructing Self".into())
-        // TODO the following lines should replace unimplemented
-        // Ok(Self {
-        //     buffer: stripped_html.0,
-        //     spans: stripped_html.1,
-        //     cursor: None,
-        //     html_span_map: mapped_html,
+        Ok(Self {
+            buffer: String::new(),
+            spans: Vec::new(),
+            cursor: None,
+            html_span_map: HashMap::new(),
 
-        //     ui,
-        //     processor,
-        // })
+            ui,
+            processor,
+        })
     }
 }
 

@@ -18,15 +18,12 @@ const CURSOR_CHANGE_EVENTS: [&'static str; 4] = [
     "keyup",
 ];
 
-pub struct DefaultProcessor {}
+pub struct DefaultProcessor {
+    listener: Closure<Fn()>,
+}
 
 impl TextProcessor for DefaultProcessor {
     fn attach(editor: HtmlElement) -> Result<Self, JsValue> {
-        editor.set_content_editable("true");
-        editor.style().set_property("height", "100px")?;
-        editor.style().set_property("width", "100px")?;
-        editor.style().set_property("border", "50px solid black")?;
-
         // TODO Temporary thing for testing out the cursor location.
         let root = editor.owner_document().ok_or("Editor element does not have a owning document!")?;
         let event_target: EventTarget = root.into();
@@ -35,10 +32,10 @@ impl TextProcessor for DefaultProcessor {
         for event in CURSOR_CHANGE_EVENTS.iter() {
             event_target.add_event_listener_with_callback(event, callback.as_ref().unchecked_ref())?;
         }
-        log::info!("Callback! {:?}", callback);
-        callback.forget();
 
-        Ok(Self {})
+        Ok(Self {
+            listener: callback,
+        })
     }
 }
 
@@ -92,6 +89,7 @@ impl DefaultProcessor {
                     .ok()?;
                 (container, offset)
             };
+            log::info!("End offset at {:?}.", sel_end.1);
             let end_offset = {
                 ele_range.set_end(&sel_end.0, sel_end.1)
                     .tap_err(|e| log::error!("Failed to set range end selection end due to {:?}.", e))
@@ -112,6 +110,7 @@ impl DefaultProcessor {
                         .ok()?;
                     (container, offset)
                 };
+                log::info!("Start offset at {:?}.", sel_start.1);
                 let start_offset = {
                     ele_range.set_end(&sel_start.0, sel_start.1)
                         .tap_err(|e| log::error!("Failed to set range end to selection start due to {:?}.", e))

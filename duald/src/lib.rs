@@ -13,6 +13,9 @@ use editor::{Editor, EditorUI, TextProcessor, DefaultEditor};
 #[wasm_bindgen]
 pub fn attach_default_editor_to(id: &str, doc: Option<Document>) -> Result<(), JsValue> {
     let editor: DefaultEditor = attach_to(id, doc)?;
+    // We assume the editor will need to persisted until the end of time.
+    // If this isn't the base, we need to figure out how to return the editor. Probably through an opaque pointer.
+    let _ = Box::leak(Box::new(editor));
     Ok(())
 }
 
