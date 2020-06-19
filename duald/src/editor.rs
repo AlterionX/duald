@@ -25,12 +25,6 @@ enum Cursor {
 }
 
 pub struct Editor<UI: EditorUI, Processor: TextProcessor> {
-    buffer: String,
-    spans: Vec<BoundTup<usize>>,
-    cursor: Option<Cursor>,
-    // TODO figure out how to prevent browser's contenteditable from working
-    html_span_map: HashMap<BoundTup<usize>, BoundTup<usize>>,
-
     ui: UI,
     processor: Processor,
 }
@@ -49,11 +43,6 @@ impl<UI: EditorUI, Processor: TextProcessor> Editor<UI, Processor> {
         let ui = UI::init(editor.clone())?;
         // TODO create actual editor
         Ok(Self {
-            buffer: String::new(),
-            spans: Vec::new(),
-            cursor: None,
-            html_span_map: HashMap::new(),
-
             ui,
             processor,
         })

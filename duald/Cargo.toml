@@ -17,6 +17,7 @@ version = "0.3"
 features = [
     "CssStyleDeclaration",
     "Document",
+    "Event",
     "EventTarget",
     "HtmlElement",
     "Node",

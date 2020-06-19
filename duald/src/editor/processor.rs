@@ -1,8 +1,9 @@
 use std::{
     ops::{Bound, RangeBounds},
+    sync::{Arc, Mutex},
 };
 use wasm_bindgen::{closure::Closure, JsCast, JsValue};
-use web_sys::{HtmlElement, EventTarget};
+use web_sys::{Event, HtmlElement, EventTarget};
 use tap::*;
 
 use crate::editor::Cursor;
@@ -19,22 +20,45 @@ const CURSOR_CHANGE_EVENTS: [&'static str; 4] = [
 ];
 
 pub struct DefaultProcessor {
-    listener: Closure<Fn()>,
+    listener: Closure<dyn Fn(Event)>,
+    state: Arc<Mutex<String>>,
 }
 
 impl TextProcessor for DefaultProcessor {
     fn attach(editor: HtmlElement) -> Result<Self, JsValue> {
-        // TODO Temporary thing for testing out the cursor location.
+        let backed_buffer = Arc::new(Mutex::new(String::new())); // TODO parse from editor
         let root = editor.owner_document().ok_or("Editor element does not have a owning document!")?;
         let event_target: EventTarget = root.into();
         let editor_ptr = editor.clone();
-        let callback = Closure::wrap(Box::new(move || log::info!("A call back! Selected text: {:?}", Self::find_cursor(editor_ptr.clone()))) as Box<dyn Fn()>);
+        let backed_buffer_ptr = Arc::clone(backed_buffer);
+        let callback = Closure::wrap(Box::new(move |e| {
+            log::info!("A call back! With event type {} from editor {:?}", e.type_(), editor_ptr);
+            let cursor = Self::find_cursor(editor_ptr);
+            log::info!("Cursor located at: {:?}", cursor);
+            if cursor.is_none() {
+                log::info!("This event is unrelated to the editor.");
+                return;
+            }
+            match backed_buffer_ptr.lock() {
+                Ok(buffer) => {
+                    log::debug!("Updating buffer's state due to event.");
+                    // TODO the actual update
+                    log::debug!("Buffer updated to {:?}", buffer);
+                },
+                // TODO recovery might require some finangling
+                Err(e) => {
+                    log::error!("Backing buffer mutex was poisoned!");
+                    panic!("Backing buffer for editor was poisoned.");
+                },
+            }
+        }) as Box<dyn Fn(_)>);
         for event in CURSOR_CHANGE_EVENTS.iter() {
             event_target.add_event_listener_with_callback(event, callback.as_ref().unchecked_ref())?;
         }
 
         Ok(Self {
             listener: callback,
+            state: backed_buffer,
         })
     }
 }
